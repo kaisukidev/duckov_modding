@@ -1,50 +1,50 @@
-# Duckov Modding Example
+# Exemplo de Modding para Duckov
 
-_This is an example project for modding Escape From Duckov._
+_Documentação de exemplo de mods para "Escape From Duckov"._
 
-[中文](README.md) | English | [한국어](README_KO.md)
+[APIs Notáveis](Documents/NotableAPIs_CN.md)
 
-[Notable APIs](Documents/NotableAPIs.md)
-## About Harmony
+## Sobre o Harmony
 
-The game don't have Harmony library integrated. We noticed that different versions of Harmony library conflicts each other when used in different Mods. Please consider using the most used version of Harmony library in the community, probably the newest 2.4.1 release.
+O jogo atualmente não possui Harmony integrado. Foi observado que há conflitos ao carregar diferentes versões do Harmony simultaneamente. Você pode usar como referência as versões do Harmony mais populares na comunidade para desenvolvimento, como a versão 2.4.1 que era a mais recente no momento da redação deste documento.
 
-## Overview
+## Visão Geral do Funcionamento
 
-The modding system of Escape From Duckov scans and reads the subfolders in the Duckov_Data/Mods folder, as well as the folders of subscribed items in the Steam Workshop. Mods are displayed and loaded in the game through the `dll` files, `info.ini`, and `preview.png` contained in these folders.
+O sistema de Mods de "Escape From Duckov" automaticamente escaneia e lê a pasta Duckov_Data/Mods, bem como as pastas de itens inscritos na Steam Workshop. Quando o escaneamento detecta que essas pastas contêm arquivos dll específicos, info.ini e preview.png, o mod pode ser gerenciado e carregado no menu de Mods do jogo.
+Nota: No sistema Mac, as pastas relevantes estão localizadas em Duckov/Duckov.app/**Contents/Mods/**.
 
-Escape From Duckov reads the name parameter in info.ini and uses it as a namespace to load a class named ModBehaviour. For example, if info.ini contains `name=MyMod`, it will load `MyMod.ModBehaviour` from the `MyMod.dll` file.
+### Regra 1
+O jogo lerá o parâmetro **name** no arquivo info.ini da pasta do mod e o usará como namespace para tentar carregar uma classe chamada ModBehaviour. Por exemplo, se o info.ini contiver `name=MyMod`, ele carregará `MyMod.ModBehaviour` do arquivo `MyMod.dll`.
 
-ModBehaviour should inherit from `Duckov.Modding.ModBehaviour`. `Duckov.Modding.ModBehaviour` is a class that inherits from MonoBehaviour and includes some additional features needed in the mod system. When loading a mod, Escape From Duckov creates a GameObject for that mod and creates an instance of ModBehaviour by calling GameObject.AddComponent(Type). Mod authors can implement functionality by writing Unity events such as Start\Update in ModBehaviour, or by registering other events in Escape From Duckov.
+### Regra 2
+A classe ModBehaviour do mod deve herdar de **Duckov.Modding.ModBehaviour**, que é uma classe que herda do MonoBehaviour do Unity e contém algumas funcionalidades adicionais necessárias para o sistema de mods. Ao carregar um mod, "Escape From Duckov" criará um GameObject para esse mod e criará uma instância do ModBehaviour chamando GameObject.AddComponent(Type). Os autores de mods podem implementar funcionalidades personalizadas escrevendo eventos do Unity como Start\Update no ModBehaviour, ou registrando outros eventos em "Escape From Duckov".
 
-## Mod File Structure
+## Estrutura da Pasta do Mod
 
-Place the prepared Mod folder in `Duckov_Data/Mods` within the Escape From Duckov installation directory, and the Mod can be loaded in the Mods interface on the game's main menu.
-Assuming the Mod's name is "MyMod", the published file structure should be as follows:
+Coloque a pasta do Mod preparada em Duckov_Data/Mods do jogo base "Escape From Duckov", e você poderá carregar o Mod na interface de Mods do menu principal do jogo.
+Usando "MyMod" como exemplo acima, a estrutura de arquivos publicada deve ser a seguinte:
 
-- MyMod (Folder)
-  - MyMod.dll
-  - info.ini
-  - preview.png (Square preview image, recommended resolution `256*256`)
+- MyMod (pasta do mod)
+  - MyMod.dll (lógica de funcionalidade personalizada do mod)
+  - info.ini (importante, arquivo de configuração do mod)
+  - preview.png (imagem de visualização quadrada, resolução recomendada `256*256`)
 
-[Mod Folder Example](DisplayItemValue/ReleaseExample/DisplayItemValue/)
+[Exemplo de Pasta de Mod](DisplayItemValue/ReleaseExample/DisplayItemValue/)
 
-### info.ini
+### Detalhes do info.ini
 
-info.ini should contain the following parameters:
+Este arquivo de configuração deve conter os seguintes parâmetros (não é recomendado armazenar outros dados adicionais):
 
-- name (mod name, primarily used for loading the dll file)
-- displayName (display name)
-- description (display description)
+- name (nome do mod, usado principalmente para carregar o arquivo dll. Veja detalhes na _Regra 1_ acima)
+- displayName (nome exibido)
+- description (descrição exibida)
+- publishedFileId (_pode conter_. ID deste Mod na Steam Workshop)
+- tags (Tags exibidas na Workshop, separadas por vírgulas)
 
-info.ini may also contain the following parameters:
+**Nota: Ao fazer upload para a Steam Workshop, o info.ini será sobrescrito. Alguns dados no arquivo de configuração podem ser perdidos. Por isso, não é recomendado armazenar informações além dos itens acima no info.ini.**
 
-- publishedFileId (records this Mod's ID in the Steam Workshop)
-- tags (The tags displays in the steam workshop web page, separate with comma)
+#### Parâmetros disponíveis para Tags
 
-**Note: When uploading to Steam Workshop, info.ini will be overwritten. Original information in info.ini may be lost as a result. Therefore, it is not recommended to store any information other than the above items in info.ini.**
-
-#### Possible Tags
 - Weapon
 - Equipment & Gear
 - Loot & Economy
@@ -60,66 +60,71 @@ info.ini may also contain the following parameters:
 - Utility
 - Medical & Survival
 
-## Configuring C# Project
+## Configurando o Projeto C#
 
-1. Have Escape From Duckov installed on your computer.
-2. Create a .NET Class Library project.
-3. Configure project parameters.
+**Nota: Ao fazer upload para a Steam Workshop, o info.ini será sobrescrito. As informações originais no info.ini podem ser perdidas. Por isso, não é recomendado armazenar informações além dos itens acima no info.ini.**
 
-   1. Target Framework
-      - **It is recommended to set TargetFramework to netstandard2.1.**
-      - Note: Remove features not supported by TargetFramework, such as `<ImplicitUsings>`
-   2. Reference Include
+## Configurando o Projeto C# / Configuring C# Project
 
-      - Add `\Duckov_Data\Managed\*.dll` from Escape From Duckov to the references.
-      - Example:
-
+1. Prepare o jogo base "Escape From Duckov" no seu computador.
+2. Crie uma Biblioteca de Classes (Class Library) .NET através do Visual Studio.
+3. Configure os parâmetros do projeto.
+   1) Framework (Target Framework)
+      - **É recomendado definir o TargetFramework como .NET Standard 2.1**.
+      - Lembre-se de remover recursos não suportados pelo TargetFramework, como `<ImplicitUsings>`
+   2) Adicionar Referências (Reference Include)
+      - Adicione `\Duckov_Data\Managed\*.dll` de "Escape From Duckov" às referências.
+      - Exemplo:
       ```
-      <ItemGroup>
-        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\TeamSoda.*" />
-        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\ItemStatsSystem.dll" />
-        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Unity*" />
-      </ItemGroup>
+        <ItemGroup>
+          <Reference Include="$(DuckovPath)\Duckov_Data\Managed\TeamSoda.*" />
+          <Reference Include="$(DuckovPath)\Duckov_Data\Managed\ItemStatsSystem.dll" />
+          <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Unity*" />
+        </ItemGroup>
       ```
 
-4. Done! Now write a ModBehaviour class in your Mod's Namespace. Build the project to get your mod's main dll.
+4. Configuração do projeto concluída! Agora escreva uma classe ModBehaviour no Namespace do seu projeto de Mod.
+5. Compile o projeto para obter a dll principal do seu mod. Em seguida, organize a estrutura de pastas conforme as regras descritas acima e você pode começar a testar localmente.
 
-csproj File Example: [DisplayItemValue.csproj](DisplayItemValue/DisplayItemValue.csproj)
+[Exemplo de arquivo csproj](DisplayItemValue/DisplayItemValue.csproj)
 
-## Other
+Nota: Se encontrar problemas com caminhos de arquivo sob .csproj que não são reconhecidos, você pode abrir o arquivo com uma IDE de terceiros (como VS Code), alterar a codificação do arquivo de UTF-8 with BOM para UTF-8 (sem BOM) e salvar novamente. Depois, ao abrir com o Visual Studio, deve funcionar normalmente.
+
+## Outros
 
 ### Unity Package
 
-When developing with Unity, you can refer to the [manifest.json file](UnityFiles/manifest.json) included in this repository to select packages.
+Ao desenvolver usando Unity, você pode consultar o [arquivo manifest.json](UnityFiles/manifest.json) incluído neste repositório para selecionar packages.
 
-### Custom Game Items
+### Itens de Jogo Personalizados
 
 ```
-// add custom items
+// Adicionar item personalizado
 ItemStatsSystem.ItemAssetsCollection.AddDynamicEntry(Item prefab)
 
-// remove the mod item
+// Remover item personalizado
 ItemStatsSystem.ItemAssetsCollection.RemoveDynamicEntry(Item prefab)
 ```
 
-- Custom item prefabs need to have TypeID configured properly. Avoid conflicts with the base game and other MODs.
-- If the corresponding MOD is not loaded when entering the game, custom items in the save file will disappear directly.
+- O prefab do item personalizado precisa ter o TypeID configurado. Este ID deve evitar conflitos com o jogo base e outros MODs.
+- Se o MOD correspondente não for carregado ao entrar no jogo, os itens personalizados no save desaparecerão diretamente.
 
-### Localization
+### Localização
+
 ```
-// override displayed localization text
+// Sobrescrever texto de localização
 SodaCraft.Localizations.LocalizationManager.SetOverrideText(string key, string value)
 
-// handle logic when switching languages
+// Lidar com lógica ao trocar idioma
 SodaCraft.Localizations.LocalizationManager.OnSetLanguage:System.Action<SystemLanguage>
 ```
 
-## Duckov Community Rules
+## Diretrizes da Comunidade Duckov
 
-To aid the long-term development of the Duckov community, we ask everyone to contribute to a positive creative environment. Please adhere to the following rules:
-1. Content that violates the laws of the regions where the developer team and the Steam platform operate is strictly prohibited, as well as any content involving politics, obscene or pornographic material, or the promotion of violence and terrorism.
-2. Content that severely insults characters, distorts the story, or aims to cause discomfort, conflict, or controversy in the player community is prohibited. This also includes content related to current events or real-life individuals that may trigger real-world disputes.
-3. Unauthorized use of copyrighted game assets or other third-party materials is prohibited.
-4. Mods must not be used to direct players to advertisements, fundraising, payment requests, or other commercial or unofficial external links.
-5. Mods containing AI-generated content must be clearly labeled.  
-For mods published on Steam Workshop, any violations of the above rules may result in removal without prior notice and may lead to suspension of the creator’s permissions.
+Para o desenvolvimento saudável e harmonioso de longo prazo da comunidade Duckov, precisamos manter juntos um bom ambiente de criação. Portanto, esperamos que todos sigam as seguintes regras:
+1. É proibido conteúdo que viole as leis da equipe de desenvolvimento e da região onde a plataforma Steam está localizada, conteúdo político, pornográfico obsceno ou que promova violência e terror.
+2. É proibido conteúdo que insulte gravemente personagens ou distorça o enredo, que pretenda causar aversão e criar divisão na comunidade de jogadores, ou que envolva eventos atuais populares e figuras da vida real que possam causar controvérsias.
+3. É proibido conteúdo que use recursos de jogo protegidos por direitos autorais ou outros materiais de terceiros sem autorização.
+4. É proibido usar Mods para direcionar a anúncios, doações ou outros links externos de natureza comercial ou não oficial, ou conduzir outras pessoas a pagarem.
+5. Mods que usam conteúdo de IA precisam ser rotulados.  
+Para Mods publicados na Steam Workshop, se violarem as regras acima, podemos excluí-los diretamente sem aviso prévio e podemos banir as permissões dos criadores relacionados.
